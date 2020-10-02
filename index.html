@@ -209,7 +209,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/21/C-%E4%B8%AD%E7%9A%84const%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/09/21/C++%E4%B8%AD%E7%9A%84const%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/head.jpeg">
@@ -223,7 +223,7 @@
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
           
-            <a href="/2020/09/21/C-%E4%B8%AD%E7%9A%84const%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/" class="post-title-link" itemprop="url">C++中的const成员函数</a>
+            <a href="/2020/09/21/C++%E4%B8%AD%E7%9A%84const%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/" class="post-title-link" itemprop="url">C++中的const成员函数</a>
         </h2>
 
         <div class="post-meta">
@@ -247,7 +247,16 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          
+          <p>我们在定义类的成员函数的时候，往往函数块内会返回一个其他的成员，这种方式实际上是隐式地指向调用该函数的对象的成员，即成员函数通过一个名为this的额外的隐式参数来访问调用它的那个对象。</p>
+<p>而我们往往会看到成员函数的参数列表后紧跟着一个const关键字，这个const的作用是修改隐式this指针的类型。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2020/09/21/C++%E4%B8%AD%E7%9A%84const%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
