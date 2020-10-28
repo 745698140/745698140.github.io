@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/idea32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/idea16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Python time, random, collections, itertools 的基本用法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python time, random, collections, itertools基本用法">
+<meta property="og:url" content="http://yoursite.com/2020/10/28/Python-time-random-collections-itertools%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/index.html">
+<meta property="og:site_name" content="MoChen&#39;s">
+<meta property="og:description" content="Python time, random, collections, itertools 的基本用法">
+<meta property="og:locale">
+<meta property="article:published_time" content="2020-10-28T11:35:26.000Z">
+<meta property="article:modified_time" content="2020-10-28T11:36:52.445Z">
+<meta property="article:author" content="MoChen">
+<meta property="article:tag" content="Python">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://yoursite.com/2020/10/28/Python-time-random-collections-itertools%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>Python time, random, collections, itertools基本用法 | MoChen's</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">MoChen's</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/10/28/Python-time-random-collections-itertools%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/head.jpeg">
+      <meta itemprop="name" content="MoChen">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MoChen's">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python time, random, collections, itertools基本用法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2020-10-28 11:35:26" itemprop="dateCreated datePublished" datetime="2020-10-28T11:35:26+00:00">2020-10-28</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Python time, random, collections, itertools 的基本用法</p>
+<a id="more"></a>
+
+<h3 id="time库"><a href="#time库" class="headerlink" title="time库"></a>time库</h3><p>import time</p>
+<p>Python处理时间的标准库</p>
+<ul>
+<li>time.localtime() 本地时间</li>
+<li>time.gmtime() UTC世界统一时间，北京时间比这个统一时间早8个小时</li>
+<li>time.ctime() 返回本地时间的字符串</li>
+</ul>
+<h4 id="时间戳和计时器"><a href="#时间戳和计时器" class="headerlink" title="时间戳和计时器"></a>时间戳和计时器</h4><ul>
+<li>time.time() 返回自纪元以来的秒数，记录time.sleep()</li>
+<li>time.perf_counter() 随意取一个时间点到该时间点的间隔秒数，记录sleep</li>
+<li>time.process_time() 随意取，不记录sleep</li>
+</ul>
+<h4 id="格式化"><a href="#格式化" class="headerlink" title="格式化"></a>格式化</h4><p>time.strftime自定义格式化输出</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">lctime = time.localtime()</span><br><span class="line">time.strftime(<span class="string">&quot;%Y-%m-%d %A %H:%M:%S&quot;</span>, lctime)</span><br></pre></td></tr></table></figure>
+
+<h4 id="sleep"><a href="#sleep" class="headerlink" title="sleep"></a>sleep</h4><p>time.sleep() 以秒为单位</p>
+<h3 id="random库"><a href="#random库" class="headerlink" title="random库"></a>random库</h3><p>Python通过random库提供各种伪随机数</p>
+<h4 id="随机种子——seed-a-None"><a href="#随机种子——seed-a-None" class="headerlink" title="随机种子——seed(a=None)"></a>随机种子——seed(a=None)</h4><ol>
+<li>相同的种子会产生相同的随机数</li>
+<li>如果不设置随机种子，以系统当前时间为默认值</li>
+</ol>
+<h3 id="产生随机整数"><a href="#产生随机整数" class="headerlink" title="产生随机整数"></a>产生随机整数</h3><ol>
+<li>randint(a, b) 产生[a,b]之间</li>
+<li>randrange(a) 产生[0,a)</li>
+<li>randrange(a, b, step) 产生[a, b), 以step为步长</li>
+</ol>
+<h4 id="产生随机浮点数"><a href="#产生随机浮点数" class="headerlink" title="产生随机浮点数"></a>产生随机浮点数</h4><ol>
+<li>random() 产生[0.0,1.0)</li>
+<li>uniform(a, b) 产生[a, b]</li>
+</ol>
+<h4 id="序列用函数"><a href="#序列用函数" class="headerlink" title="序列用函数"></a>序列用函数</h4><ol>
+<li>choice(seq) 从seq返回一个</li>
+<li>choices(seq, weights=None, k) 对seq进行k次，可设置权重</li>
+<li>shuffle(seq) 将seq随机排列</li>
+<li>sample(pop, k) 从pop中随机可，以列表返回，k不能超过len(pop)</li>
+</ol>
+<h4 id="概率分布"><a href="#概率分布" class="headerlink" title="概率分布"></a>概率分布</h4><p>guess(mean, std)</p>
+<h3 id="collecitons库"><a href="#collecitons库" class="headerlink" title="collecitons库"></a>collecitons库</h3><p>import collecitons</p>
+<h4 id="nametuple"><a href="#nametuple" class="headerlink" title="nametuple"></a>nametuple</h4><p>collecitons.nametuple(typename, field_names, *, rename=False, default=None, module=None)</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Point = collecitons.nametuple(<span class="string">&quot;Point&quot;</span>, [<span class="string">&quot;x&quot;</span>, <span class="string">&quot;y&quot;</span>])</span><br><span class="line">p = Point(<span class="number">1</span>, y=<span class="number">2</span>)</span><br><span class="line">p <span class="comment"># Point(x=1, y=2)</span></span><br><span class="line"><span class="comment"># 可以调用属性</span></span><br><span class="line">print(p.x) <span class="comment"># 1</span></span><br><span class="line"><span class="comment"># 有元组的性质</span></span><br><span class="line">print(p[<span class="number">0</span>]) <span class="comment"># 1</span></span><br><span class="line">x, y = p</span><br><span class="line">print(x) <span class="comment"># 1</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="Counter"><a href="#Counter" class="headerlink" title="Counter"></a>Counter</h4><p>from collecitons import Counter</p>
+<p>计数统计</p>
+<p>Counter.most_common(n) 最常见的n个</p>
+<p>Counter.elements() 展开</p>
+<h4 id="deque"><a href="#deque" class="headerlink" title="deque"></a>deque</h4><p>双向队列</p>
+<p>append()</p>
+<p>appendleft()</p>
+<p>pop()</p>
+<p>popleft()</p>
+<h3 id="itertools库"><a href="#itertools库" class="headerlink" title="itertools库"></a>itertools库</h3><h4 id="排列组合迭代器"><a href="#排列组合迭代器" class="headerlink" title="排列组合迭代器"></a>排列组合迭代器</h4><ol>
+<li><p>product——笛卡尔积</p>
+<p>product(‘ABC’, “01”) </p>
+<p>product(‘ABC’, repeat = 3)</p>
+</li>
+<li><p>permutations——排列</p>
+<p>permutations(range(3))</p>
+</li>
+<li><p>combinations——组合</p>
+<p>combinations(‘abcd’, 2)</p>
+<p>combinations(range(4), 3)</p>
+</li>
+<li><p>combinations_with_replacement——元素可重复组合</p>
+</li>
+</ol>
+<h4 id="拉链"><a href="#拉链" class="headerlink" title="拉链"></a>拉链</h4><ol>
+<li><p>zip——短拉链</p>
+<p>zip(‘abc’, ‘012’, ‘xyz’)</p>
+<p>长度不一时，执行到最短的对象处就停止</p>
+</li>
+<li><p>zip_longest——长拉链</p>
+<p>zip_longest(‘abc’, ‘012345’, fillvalue=”?”)</p>
+<p>长度不一时，执行到最长的对象处就停止，缺省元素用None或指定的字符替代</p>
+</li>
+</ol>
+<h4 id="无穷迭代器"><a href="#无穷迭代器" class="headerlink" title="无穷迭代器"></a>无穷迭代器</h4><ol>
+<li><p>count(start=0, step=1) 计数</p>
+</li>
+<li><p>cycle(iterable) 循环</p>
+</li>
+<li><p>repeat(object, times) 重复</p>
+</li>
+<li><p>chain(iterables) 锁链</p>
+</li>
+<li><p>enumerate(iterable, start=0)——枚举（内置）</p>
+<p>产出有两个元素组成的元组， 结构式(index, item)，其中index从start开始，item从iterable中取</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> enumerate(<span class="string">&quot;pyhton&quot;</span>, start = <span class="number">1</span>):</span><br><span class="line">	print(i)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>groupby(iterable, key=None)——分组</p>
+<p>创建一个迭代器，按照key指定的方式，返回iterable中连续的键和组，一般来说要预先对数据进行排序，key为None默认把连续重复元素分组</p>
+</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Python/" rel="tag"># Python</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/21/%E7%AE%97%E6%B3%95%E4%B8%AD%E7%9A%84%E5%B7%AE%E5%88%86%E6%80%9D%E6%83%B3/" rel="prev" title="算法中的差分思想">
+      <i class="fa fa-chevron-left"></i> 算法中的差分思想
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#time%E5%BA%93"><span class="nav-number">1.</span> <span class="nav-text">time库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E6%88%B3%E5%92%8C%E8%AE%A1%E6%97%B6%E5%99%A8"><span class="nav-number">1.1.</span> <span class="nav-text">时间戳和计时器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%BC%E5%BC%8F%E5%8C%96"><span class="nav-number">1.2.</span> <span class="nav-text">格式化</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sleep"><span class="nav-number">1.3.</span> <span class="nav-text">sleep</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#random%E5%BA%93"><span class="nav-number">2.</span> <span class="nav-text">random库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%8F%E6%9C%BA%E7%A7%8D%E5%AD%90%E2%80%94%E2%80%94seed-a-None"><span class="nav-number">2.1.</span> <span class="nav-text">随机种子——seed(a&#x3D;None)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BA%A7%E7%94%9F%E9%9A%8F%E6%9C%BA%E6%95%B4%E6%95%B0"><span class="nav-number">3.</span> <span class="nav-text">产生随机整数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BA%A7%E7%94%9F%E9%9A%8F%E6%9C%BA%E6%B5%AE%E7%82%B9%E6%95%B0"><span class="nav-number">3.1.</span> <span class="nav-text">产生随机浮点数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BA%8F%E5%88%97%E7%94%A8%E5%87%BD%E6%95%B0"><span class="nav-number">3.2.</span> <span class="nav-text">序列用函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A6%82%E7%8E%87%E5%88%86%E5%B8%83"><span class="nav-number">3.3.</span> <span class="nav-text">概率分布</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#collecitons%E5%BA%93"><span class="nav-number">4.</span> <span class="nav-text">collecitons库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#nametuple"><span class="nav-number">4.1.</span> <span class="nav-text">nametuple</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Counter"><span class="nav-number">4.2.</span> <span class="nav-text">Counter</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#deque"><span class="nav-number">4.3.</span> <span class="nav-text">deque</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#itertools%E5%BA%93"><span class="nav-number">5.</span> <span class="nav-text">itertools库</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%92%E5%88%97%E7%BB%84%E5%90%88%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="nav-number">5.1.</span> <span class="nav-text">排列组合迭代器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8B%89%E9%93%BE"><span class="nav-number">5.2.</span> <span class="nav-text">拉链</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E7%A9%B7%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="nav-number">5.3.</span> <span class="nav-text">无穷迭代器</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="MoChen"
+      src="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/head.jpeg">
+  <p class="site-author-name" itemprop="name">MoChen</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">6</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/745698140" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;745698140" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:nikolaschen@qq.com" title="E-Mail → mailto:nikolaschen@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">MoChen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
