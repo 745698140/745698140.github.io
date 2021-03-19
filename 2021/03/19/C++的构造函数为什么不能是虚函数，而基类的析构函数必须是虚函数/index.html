@@ -20,17 +20,21 @@
     var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="临渊羡鱼，不如退而结网">
-<meta property="og:type" content="website">
-<meta property="og:title" content="MoChen&#39;s">
-<meta property="og:url" content="http://yoursite.com/archives/2020/index.html">
+  <meta name="description" content="构造函数为什么不能是虚函数呢？首先我们需要知道两个概念，以及这两者之间的关联：  虚表指针vptr 虚函数表  vptr指针指向虚函数表，执行虚函数的时候，会调用vptr指针指向的虚函数的地址。 当定义一个对象的时候，首先会分配对象内存空间，然后调用构造函数来初始化对象。vptr变量是在构造函数中进行初始化的。又因为执行虚函数需要通过vptr指针来调用。如果可以定义构造函数为虚函数，那么这将陷入死">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++的构造函数为什么不能是虚函数，而基类的析构函数必须是虚函数">
+<meta property="og:url" content="http://yoursite.com/2021/03/19/C++%E7%9A%84%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0%EF%BC%8C%E8%80%8C%E5%9F%BA%E7%B1%BB%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E5%BF%85%E9%A1%BB%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0/index.html">
 <meta property="og:site_name" content="MoChen&#39;s">
-<meta property="og:description" content="临渊羡鱼，不如退而结网">
+<meta property="og:description" content="构造函数为什么不能是虚函数呢？首先我们需要知道两个概念，以及这两者之间的关联：  虚表指针vptr 虚函数表  vptr指针指向虚函数表，执行虚函数的时候，会调用vptr指针指向的虚函数的地址。 当定义一个对象的时候，首先会分配对象内存空间，然后调用构造函数来初始化对象。vptr变量是在构造函数中进行初始化的。又因为执行虚函数需要通过vptr指针来调用。如果可以定义构造函数为虚函数，那么这将陷入死">
 <meta property="og:locale">
+<meta property="article:published_time" content="2021-03-19T22:08:59.000Z">
+<meta property="article:modified_time" content="2021-03-19T22:25:17.161Z">
 <meta property="article:author" content="MoChen">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="虚函数">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://yoursite.com/archives/2020/">
+<link rel="canonical" href="http://yoursite.com/2021/03/19/C++%E7%9A%84%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0%EF%BC%8C%E8%80%8C%E5%9F%BA%E7%B1%BB%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E5%BF%85%E9%A1%BB%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0/">
 
 
 <script id="page-configurations">
@@ -38,12 +42,12 @@
   CONFIG.page = {
     sidebar: "",
     isHome : false,
-    isPost : false,
+    isPost : true,
     lang   : 'zh-Hans'
   };
 </script>
 
-  <title>Archive | MoChen's</title>
+  <title>C++的构造函数为什么不能是虚函数，而基类的析构函数必须是虚函数 | MoChen's</title>
   
 
 
@@ -146,150 +150,89 @@
         <div class="content-wrap">
           
 
-          <div class="content archive">
+          <div class="content post posts-expand">
             
 
+    
   
   
-  
-  <div class="post-block">
-    <div class="posts-collapse">
-      <div class="collection-title">
-        <span class="collection-header">Um..! 7 posts in total. Keep on posting.</span>
-      </div>
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/19/C++%E7%9A%84%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0%EF%BC%8C%E8%80%8C%E5%9F%BA%E7%B1%BB%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E5%BF%85%E9%A1%BB%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/head.jpeg">
+      <meta itemprop="name" content="MoChen">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MoChen's">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          C++的构造函数为什么不能是虚函数，而基类的析构函数必须是虚函数
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-03-19 22:08:59" itemprop="dateCreated datePublished" datetime="2021-03-19T22:08:59+00:00">2021-03-19</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
 
       
-    <div class="collection-year">
-      <span class="collection-header">2020</span>
-    </div>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-10-28T11:35:26+00:00"
-              content="2020-10-28">
-          10-28
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/10/28/Python-time-random-collections-itertools%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/" itemprop="url">
-            <span itemprop="name">Python time, random, collections, itertools基本用法</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-09-21T15:48:59+01:00"
-              content="2020-09-21">
-          09-21
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/09/21/%E7%AE%97%E6%B3%95%E4%B8%AD%E7%9A%84%E5%B7%AE%E5%88%86%E6%80%9D%E6%83%B3/" itemprop="url">
-            <span itemprop="name">算法中的差分思想</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-09-21T15:43:13+01:00"
-              content="2020-09-21">
-          09-21
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/09/21/C++%E4%B8%AD%E7%9A%84const%E6%88%90%E5%91%98%E5%87%BD%E6%95%B0/" itemprop="url">
-            <span itemprop="name">C++中的const成员函数</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-09-01T11:40:27+01:00"
-              content="2020-09-01">
-          09-01
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/09/01/C++%E4%B8%AD%E7%9A%84%E9%A1%B6%E5%B1%82const%E5%92%8C%E5%BA%95%E5%B1%82const/" itemprop="url">
-            <span itemprop="name">C++中的顶层const和底层const</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-08-24T02:14:10+01:00"
-              content="2020-08-24">
-          08-24
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/08/24/%E5%AF%B9KMP%E7%AE%97%E6%B3%95%E7%9A%84%E4%B8%80%E4%BA%9B%E7%90%86%E8%A7%A3/" itemprop="url">
-            <span itemprop="name">对KMP算法的一些理解</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-08-23T14:19:30+01:00"
-              content="2020-08-23">
-          08-23
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2020/08/23/vimKeyboard/" itemprop="url">
-            <span itemprop="name">vimKeyboard</span>
-          </a>
-      </div>
-
-    </header>
-  </article>
-
+        <h3 id="构造函数为什么不能是虚函数呢？"><a href="#构造函数为什么不能是虚函数呢？" class="headerlink" title="构造函数为什么不能是虚函数呢？"></a>构造函数为什么不能是虚函数呢？</h3><p>首先我们需要知道两个概念，以及这两者之间的关联：</p>
+<ul>
+<li>虚表指针vptr</li>
+<li>虚函数表</li>
+</ul>
+<p>vptr指针指向虚函数表，执行虚函数的时候，会调用vptr指针指向的虚函数的地址。</p>
+<p>当定义一个对象的时候，首先会分配对象内存空间，然后调用构造函数来初始化对象。vptr变量是在构造函数中进行初始化的。又因为执行虚函数需要通过vptr指针来调用。如果可以定义构造函数为虚函数，那么这将陷入死锁。</p>
+<h3 id="基类的析构函数为什么必须是虚函数呢？"><a href="#基类的析构函数为什么必须是虚函数呢？" class="headerlink" title="基类的析构函数为什么必须是虚函数呢？"></a>基类的析构函数为什么必须是虚函数呢？</h3><p>我们想要回收一个对象申请的资源，就需要调用析构函数。虽然我们没有显示调用析构函数，但是编译器会默认地为我们执行析构函数。</p>
+<p>那么当我们执行 BaseClass *base = new BaseClass(); 当我们执行 delete base 时，会调用析构函数为我们释放资源。而我们执行 BaseClass *sub = new SubClass(); 如果BaseClass基类的析构函数不是虚函数的时候，delete sub 对象的时候，只会释放 BaseClass 基类申请的资源，而不是释放 SubClass 派生类的资源，原因如下：</p>
+<p>基类指针指向了派生类对象，而基类中的析构函数是非virtual的，而虚函数是动态绑定的基础。现在析构函数不是virtual的，因此不会发生动态绑定，而是静态绑定，指针的静态类型为基类指针，因此在delete的时候只会调用基类的析构函数，而不会调用派生类的析构函数。这样，在派生类中申请的资源就不会得到释放，就会造成内存泄漏。</p>
 
     </div>
-  </div>
-  
-  
-  
 
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/C/" rel="tag"># C++</a>
+              <a href="/tags/%E8%99%9A%E5%87%BD%E6%95%B0/" rel="tag"># 虚函数</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/28/Python-time-random-collections-itertools%E5%9F%BA%E6%9C%AC%E7%94%A8%E6%B3%95/" rel="prev" title="Python time, random, collections, itertools基本用法">
+      <i class="fa fa-chevron-left"></i> Python time, random, collections, itertools基本用法
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
   
 
 
@@ -342,6 +285,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0%E5%91%A2%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">构造函数为什么不能是虚函数呢？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9F%BA%E7%B1%BB%E7%9A%84%E6%9E%90%E6%9E%84%E5%87%BD%E6%95%B0%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E6%98%AF%E8%99%9A%E5%87%BD%E6%95%B0%E5%91%A2%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">基类的析构函数为什么必须是虚函数呢？</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
