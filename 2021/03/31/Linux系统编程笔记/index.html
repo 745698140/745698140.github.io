@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/idea32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/idea16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="库库文件是计算机上的一类文件，可以简单的把库文件看成一种代码仓库，它提供给使用者一些直接拿来用的变量、函数或类。库不能单独运行。  静态库：在程序链接阶段被复制到程序中 动态库：在链接阶段没有被复制到程序中，而是程序在运行时由系统动态加载到内存中供程序调用  库的好处：  代码保密 方便部署和分发  静态库命名规则：  Linux：libxxx.a lib: 前缀（固定） xxx：库的名字，自己起">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux系统编程笔记">
+<meta property="og:url" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="MoChen&#39;s">
+<meta property="og:description" content="库库文件是计算机上的一类文件，可以简单的把库文件看成一种代码仓库，它提供给使用者一些直接拿来用的变量、函数或类。库不能单独运行。  静态库：在程序链接阶段被复制到程序中 动态库：在链接阶段没有被复制到程序中，而是程序在运行时由系统动态加载到内存中供程序调用  库的好处：  代码保密 方便部署和分发  静态库命名规则：  Linux：libxxx.a lib: 前缀（固定） xxx：库的名字，自己起">
+<meta property="og:locale">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%201.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%202.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%203.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%204.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%205.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%206.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%207.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%208.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%209.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2010.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2011.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2012.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2013.png">
+<meta property="og:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2014.png">
+<meta property="article:published_time" content="2021-03-31T00:44:51.000Z">
+<meta property="article:modified_time" content="2021-03-31T00:47:14.844Z">
+<meta property="article:author" content="MoChen">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled.png">
+
+<link rel="canonical" href="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>Linux系统编程笔记 | MoChen's</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">MoChen's</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/03/31/Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%E7%AC%94%E8%AE%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/WechatIMG93.jpeg">
+      <meta itemprop="name" content="MoChen">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MoChen's">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux系统编程笔记
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-03-31 01:44:51" itemprop="dateCreated datePublished" datetime="2021-03-31T01:44:51+01:00">2021-03-31</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="库"><a href="#库" class="headerlink" title="库"></a>库</h1><p>库文件是计算机上的一类文件，可以简单的把库文件看成一种代码仓库，它提供给使用者一些直接拿来用的变量、函数或类。库不能单独运行。</p>
+<ul>
+<li>静态库：在程序链接阶段被复制到程序中</li>
+<li>动态库：在链接阶段没有被复制到程序中，而是程序在运行时由系统动态加载到内存中供程序调用</li>
+</ul>
+<p>库的好处：</p>
+<ol>
+<li>代码保密</li>
+<li>方便部署和分发</li>
+</ol>
+<h2 id="静态库"><a href="#静态库" class="headerlink" title="静态库"></a>静态库</h2><p>命名规则：</p>
+<ul>
+<li>Linux：libxxx.a<ul>
+<li>lib: 前缀（固定）</li>
+<li>xxx：库的名字，自己起</li>
+<li>.a：后缀（固定）</li>
+</ul>
+</li>
+<li>windows：libxxx.lib</li>
+</ul>
+<p>静态库的制作：</p>
+<ul>
+<li>gcc获得.o文件</li>
+<li>将.o文件打包，使用ar工具（archive）<ul>
+<li>ar  rcs libxxx.a .o xxx.o xxx.o</li>
+<li>r - 将文件插入备存文件中</li>
+<li>c - 建立备存文件</li>
+<li>s - 索引</li>
+</ul>
+</li>
+</ul>
+<h2 id="动态库"><a href="#动态库" class="headerlink" title="动态库"></a>动态库</h2><p>命名规则：</p>
+<ul>
+<li>Linux：libxxx.so</li>
+<li>windows: libxxx.dll</li>
+</ul>
+<p>动态库的制作：</p>
+<ul>
+<li>gcc -c -fpic/fPIC 获得.o 文件</li>
+<li>gcc -shared *.o -o libxxx.so</li>
+</ul>
+<p>程序启动后，动态库会被动态加载到内存中，通过ldd(list dynamic dependencies)命令检查动态库依赖关系。</p>
+<h3 id="解决动态库加载失败的问题"><a href="#解决动态库加载失败的问题" class="headerlink" title="解决动态库加载失败的问题"></a>解决动态库加载失败的问题</h3><ol>
+<li>修改DT_RPATH ，临时的</li>
+<li>修改环境变量LD_LIBRARY_PATH</li>
+<li>修改/etc/ld.so.cache文件列表</li>
+<li>修改/lib/, /usr/lib</li>
+</ol>
+<h2 id="静态库和动态库的对比"><a href="#静态库和动态库的对比" class="headerlink" title="静态库和动态库的对比"></a>静态库和动态库的对比</h2><p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled.png"></p>
+<p>静态库、动态库区别来自链接阶段如何处理，分别称为静态链接方式和动态链接方式</p>
+<h3 id="静态库的优缺点"><a href="#静态库的优缺点" class="headerlink" title="静态库的优缺点"></a>静态库的优缺点</h3><ul>
+<li>优点：<ul>
+<li>静态库打包到应用程序中加载速度快</li>
+<li>发布程序无需提供静态库，移植方便</li>
+</ul>
+</li>
+<li>缺点：<ul>
+<li>消耗系统资源，浪费内存</li>
+<li>更新、部署、发布麻烦</li>
+</ul>
+</li>
+</ul>
+<h3 id="动态库的优缺点"><a href="#动态库的优缺点" class="headerlink" title="动态库的优缺点"></a>动态库的优缺点</h3><ul>
+<li>优点：<ul>
+<li>可以实现进程间资源共享（共享库）</li>
+<li>更新、部署、发布简单</li>
+<li>可以控制何时加载动态库</li>
+</ul>
+</li>
+<li>缺点：<ul>
+<li>加载速度比静态库慢</li>
+<li>发布程序时需要提供依赖的动态库</li>
+</ul>
+</li>
+</ul>
+<h1 id="Makefile"><a href="#Makefile" class="headerlink" title="Makefile"></a>Makefile</h1><h2 id="Makefile规则"><a href="#Makefile规则" class="headerlink" title="Makefile规则"></a>Makefile规则</h2><ul>
+<li><p>一个 Makefile 文件中可以有一个或者多个规则</p>
+<p>  目标…：依赖…</p>
+<p>  命令（shell命令）</p>
+<p>  …</p>
+<ul>
+<li>目标：最终要生成的文件（伪目标除外）</li>
+<li>依赖：生成目标所需要的文件或是目标</li>
+<li>命令：通过执行命令对依赖操作生成目标（命令前必须 Tab 缩进）</li>
+</ul>
+</li>
+<li><p>Makefile 中的其它规则一般都是为第一条规则服务的。</p>
+</li>
+</ul>
+<h2 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h2><ul>
+<li>命令在执行之前，需要先检查规则中的依赖是否存在<ul>
+<li>如果存在，执行命令</li>
+<li>如果不存在，向下检查其它的规则，检查有没有一个规则是用来生成这个依赖的，如果找到了，则执行该规则中的命令</li>
+</ul>
+</li>
+<li>检测更新，在执行规则中的命令时，会比较目标和依赖文件的时间<ul>
+<li>如果依赖的时间比目标的时间晚，需要重新生成目标</li>
+<li>如果依赖的时间比目标的时间早，目标不需要更新，对应规则中的命令不需要被执行</li>
+</ul>
+</li>
+</ul>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%201.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%201.png"></p>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%202.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%202.png"></p>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%203.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%203.png"></p>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%204.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%204.png"></p>
+<h1 id="GDB"><a href="#GDB" class="headerlink" title="GDB"></a>GDB</h1><ul>
+<li>通常，在为调试而编译时，我们会（）关掉编译器的优化选项（<code>-O</code>）， 并打开调试选项（<code>-g</code>）。另外，<code>-Wall</code>在尽量不影响程序行为的情况下选项打开所有warning，也可以发现许多问题，避免一些不必要的 BUG。</li>
+<li>gcc -g -Wall program.c -o program</li>
+<li><code>-g</code> 选项的作用是在可执行文件中加入源代码的信息，比如可执行文件中第几条机器指令对应源代码的第几行，但并不是把整个源文件嵌入到可执行文件中，所以在调试时必须保证 gdb 能找到源文件。</li>
+</ul>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%205.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%205.png"></p>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%206.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%206.png"></p>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%207.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%207.png"></p>
+<h1 id="标准C库函数和Linux系统函数"><a href="#标准C库函数和Linux系统函数" class="headerlink" title="标准C库函数和Linux系统函数"></a>标准C库函数和Linux系统函数</h1><p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%208.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%208.png"></p>
+<h2 id="标准C库IO和Linux系统IO的关系"><a href="#标准C库IO和Linux系统IO的关系" class="headerlink" title="标准C库IO和Linux系统IO的关系"></a>标准C库IO和Linux系统IO的关系</h2><p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%209.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%209.png"></p>
+<h2 id="虚拟地址空间"><a href="#虚拟地址空间" class="headerlink" title="虚拟地址空间"></a>虚拟地址空间</h2><p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2010.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2010.png"></p>
+<h2 id="文件描述符-File-Descriptor"><a href="#文件描述符-File-Descriptor" class="headerlink" title="文件描述符 File Descriptor"></a>文件描述符 File Descriptor</h2><p>内核（kernel）利用文件描述符（file descriptor）来访问文件。文件描述符是非负整数。打开现存文件或新建文件时，内核会返回一个文件描述符。读写文件也需要使用文件描述符来指定待读写的文件。</p>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2011.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2011.png"></p>
+<h2 id="Linux-系统IO函数"><a href="#Linux-系统IO函数" class="headerlink" title="Linux 系统IO函数"></a>Linux 系统IO函数</h2><ul>
+<li>int open(const char *pathname, int flags);<ul>
+<li>打开文件</li>
+<li>flags 如 O_CREAT，意思是没有即创建</li>
+</ul>
+</li>
+<li>int open(const char *pathname, int flags, mode_t mode);<ul>
+<li>打开文件，并设置模式</li>
+<li>mode 可以是 O_RDONLY, O_WRONLY, O_RDWR</li>
+</ul>
+</li>
+<li>int close(int fd);<ul>
+<li>关闭文件描述符</li>
+</ul>
+</li>
+<li>ssize_t read(int fd, void *buf, size_t count);</li>
+<li>ssize_t write(int fd, const void *buf, size_t count);</li>
+<li>off_t lseek(int fd, off_t offset, int whence);<ul>
+<li>重定位文件偏移量</li>
+<li>SEEK_SET：设置offset</li>
+<li>SEEK_CUR：设置offset为当前加上传的参数offset</li>
+<li>SEEK_END：设置offset为文件末端加上传的参数offset（记得之后要写入一些字符才能更新）</li>
+</ul>
+</li>
+<li>int stat(const char *pathname, struct stat *statbuf);<ul>
+<li>得到文件状态信息</li>
+</ul>
+</li>
+<li>int lstat(const char *pathname, struct stat *statbuf);<ul>
+<li>得到软连接文件状态信息</li>
+</ul>
+</li>
+</ul>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2012.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2012.png"></p>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2013.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2013.png"></p>
+<h2 id="文件属性操作函数"><a href="#文件属性操作函数" class="headerlink" title="文件属性操作函数"></a>文件属性操作函数</h2><ul>
+<li>int access(const char *pathname, int mode);<ul>
+<li>判断文件mode</li>
+</ul>
+</li>
+<li>int chmod(const char *filename, int mode);</li>
+<li>int chown(const char *path, uid_t owner, gid_t group);</li>
+<li>int truncate(const char *path, off_t length);<ul>
+<li>截断或延长文件长度</li>
+</ul>
+</li>
+</ul>
+<h2 id="目录操作函数"><a href="#目录操作函数" class="headerlink" title="目录操作函数"></a>目录操作函数</h2><ul>
+<li>int rename(const char *oldpath, const char *newpath);</li>
+<li>int chdir(const char *path);</li>
+<li>char *getcwd(char *buf, size_t size);</li>
+<li>int mkdir(const char *pathname, mode_t mode);</li>
+<li>int rmdir(const char *pathname);</li>
+</ul>
+<h2 id="目录遍历函数"><a href="#目录遍历函数" class="headerlink" title="目录遍历函数"></a>目录遍历函数</h2><ul>
+<li>DIR *opendir(const char *name);<ul>
+<li>返回目录流</li>
+</ul>
+</li>
+<li>struct dirent *readdir(DIR *dirp);<ul>
+<li>返回direct结构体，目录流文件的信息</li>
+</ul>
+</li>
+<li>int closedir(DIR *dirp);</li>
+</ul>
+<p><img src="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2014.png" alt="Linux%E7%B3%BB%E7%BB%9F%E7%BC%96%E7%A8%8B%201965346d57a64af3beb11244f2eac5b2/Untitled%2014.png"></p>
+<h2 id="dup-dup2-函数"><a href="#dup-dup2-函数" class="headerlink" title="dup, dup2 函数"></a>dup, dup2 函数</h2><ul>
+<li>int dup(int oldfd);<ul>
+<li>复制文件描述符</li>
+</ul>
+</li>
+<li>int dup2(int oldfd, int newfd);<ul>
+<li>重定向文件描述符</li>
+</ul>
+</li>
+</ul>
+<h2 id="fcntl函数"><a href="#fcntl函数" class="headerlink" title="fcntl函数"></a>fcntl函数</h2><ul>
+<li>int fcntl(int fd, int cmd, … /* arg */ );<ul>
+<li>复制文件描述符</li>
+<li>设置/获取文件的状态标志</li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/03/20/%E9%87%8D%E8%BD%BD%E3%80%81%E9%87%8D%E5%86%99%EF%BC%88%E8%A6%86%E7%9B%96%EF%BC%89%E3%80%81%E9%9A%90%E8%97%8F%E7%9A%84%E5%8C%BA%E5%88%AB/" rel="prev" title="重载、重写（覆盖）、隐藏的区别">
+      <i class="fa fa-chevron-left"></i> 重载、重写（覆盖）、隐藏的区别
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%93"><span class="nav-number">1.</span> <span class="nav-text">库</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%BA%93"><span class="nav-number">1.1.</span> <span class="nav-text">静态库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%BA%93"><span class="nav-number">1.2.</span> <span class="nav-text">动态库</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E5%86%B3%E5%8A%A8%E6%80%81%E5%BA%93%E5%8A%A0%E8%BD%BD%E5%A4%B1%E8%B4%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.1.</span> <span class="nav-text">解决动态库加载失败的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%BA%93%E5%92%8C%E5%8A%A8%E6%80%81%E5%BA%93%E7%9A%84%E5%AF%B9%E6%AF%94"><span class="nav-number">1.3.</span> <span class="nav-text">静态库和动态库的对比</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">1.3.1.</span> <span class="nav-text">静态库的优缺点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%BA%93%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="nav-number">1.3.2.</span> <span class="nav-text">动态库的优缺点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Makefile"><span class="nav-number">2.</span> <span class="nav-text">Makefile</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Makefile%E8%A7%84%E5%88%99"><span class="nav-number">2.1.</span> <span class="nav-text">Makefile规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="nav-number">2.2.</span> <span class="nav-text">工作原理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GDB"><span class="nav-number">3.</span> <span class="nav-text">GDB</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%87%E5%87%86C%E5%BA%93%E5%87%BD%E6%95%B0%E5%92%8CLinux%E7%B3%BB%E7%BB%9F%E5%87%BD%E6%95%B0"><span class="nav-number">4.</span> <span class="nav-text">标准C库函数和Linux系统函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%87%E5%87%86C%E5%BA%93IO%E5%92%8CLinux%E7%B3%BB%E7%BB%9FIO%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">4.1.</span> <span class="nav-text">标准C库IO和Linux系统IO的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="nav-number">4.2.</span> <span class="nav-text">虚拟地址空间</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E6%8F%8F%E8%BF%B0%E7%AC%A6-File-Descriptor"><span class="nav-number">4.3.</span> <span class="nav-text">文件描述符 File Descriptor</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux-%E7%B3%BB%E7%BB%9FIO%E5%87%BD%E6%95%B0"><span class="nav-number">4.4.</span> <span class="nav-text">Linux 系统IO函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%87%E4%BB%B6%E5%B1%9E%E6%80%A7%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="nav-number">4.5.</span> <span class="nav-text">文件属性操作函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0"><span class="nav-number">4.6.</span> <span class="nav-text">目录操作函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86%E5%87%BD%E6%95%B0"><span class="nav-number">4.7.</span> <span class="nav-text">目录遍历函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#dup-dup2-%E5%87%BD%E6%95%B0"><span class="nav-number">4.8.</span> <span class="nav-text">dup, dup2 函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fcntl%E5%87%BD%E6%95%B0"><span class="nav-number">4.9.</span> <span class="nav-text">fcntl函数</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="MoChen"
+      src="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/WechatIMG93.jpeg">
+  <p class="site-author-name" itemprop="name">MoChen</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">12</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/745698140" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;745698140" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:nikolaschen@qq.com" title="E-Mail → mailto:nikolaschen@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">MoChen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
