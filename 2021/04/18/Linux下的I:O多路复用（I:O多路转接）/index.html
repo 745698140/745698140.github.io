@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/idea32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/idea16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="I&#x2F;O 多路复用使得程序能同时监听多个文件描述符，能够提高程序的性能，Linux 下实现 I&#x2F;O 多路用的系统调用主要有 select、poll 和 epoll。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux下的I&#x2F;O多路复用（I&#x2F;O多路转接） ">
+<meta property="og:url" content="http://yoursite.com/2021/04/18/Linux%E4%B8%8B%E7%9A%84I:O%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%88I:O%E5%A4%9A%E8%B7%AF%E8%BD%AC%E6%8E%A5%EF%BC%89/index.html">
+<meta property="og:site_name" content="MoChen&#39;s">
+<meta property="og:description" content="I&#x2F;O 多路复用使得程序能同时监听多个文件描述符，能够提高程序的性能，Linux 下实现 I&#x2F;O 多路用的系统调用主要有 select、poll 和 epoll。">
+<meta property="og:locale">
+<meta property="og:image" content="https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3168c96f-e56c-4d8f-865d-45e49140ece2/Untitled.png">
+<meta property="article:published_time" content="2021-04-18T22:57:41.000Z">
+<meta property="article:modified_time" content="2021-04-18T23:00:27.770Z">
+<meta property="article:author" content="MoChen">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="select">
+<meta property="article:tag" content="poll">
+<meta property="article:tag" content="epoll">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3168c96f-e56c-4d8f-865d-45e49140ece2/Untitled.png">
+
+<link rel="canonical" href="http://yoursite.com/2021/04/18/Linux%E4%B8%8B%E7%9A%84I:O%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%88I:O%E5%A4%9A%E8%B7%AF%E8%BD%AC%E6%8E%A5%EF%BC%89/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-Hans'
+  };
+</script>
+
+  <title>Linux下的I/O多路复用（I/O多路转接）  | MoChen's</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">MoChen's</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/18/Linux%E4%B8%8B%E7%9A%84I:O%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8%EF%BC%88I:O%E5%A4%9A%E8%B7%AF%E8%BD%AC%E6%8E%A5%EF%BC%89/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/WechatIMG93.jpeg">
+      <meta itemprop="name" content="MoChen">
+      <meta itemprop="description" content="临渊羡鱼，不如退而结网">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="MoChen's">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux下的I/O多路复用（I/O多路转接） 
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-04-18 23:57:41" itemprop="dateCreated datePublished" datetime="2021-04-18T23:57:41+01:00">2021-04-18</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>I/O 多路复用使得程序能同时监听多个文件描述符，能够提高程序的性能，Linux 下实现 I/O 多路用的系统调用主要有 select、poll 和 epoll。</p>
+<a id="more"></a>
+
+<h2 id="select"><a href="#select" class="headerlink" title="select"></a>select</h2><ul>
+<li><p>主旨思想：</p>
+<ol>
+<li><p>首先要构造一个关于文件描述符的列表，将要监听的文件描述符添加到该列表中。</p>
+</li>
+<li><p>调用一个系统函数，监听该列表中的文件描述符，直到这些描述符中的一个或者多个进行I/O操作时，该函数才返回。</p>
+<p>a. 这个函数阻塞的</p>
+<p>b. 函数对文件描述符的检测的操作是由内核完成的</p>
+</li>
+<li><p>在返回时，它会告诉进程有多少（哪些）描述符要进行I/O操作。</p>
+</li>
+</ol>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; sizeof(fd_set) &#x3D; 128 1024 </span><br><span class="line">#include &lt;sys&#x2F;time.h&gt; </span><br><span class="line">#include &lt;sys&#x2F;types.h&gt; </span><br><span class="line">#include &lt;unistd.h&gt; </span><br><span class="line">#include &lt;sys&#x2F;select.h&gt; </span><br><span class="line">int select(int nfds, fd_set *readfds, fd_set *writefds, </span><br><span class="line">		fd_set *exceptfds, struct timeval *timeout); </span><br><span class="line">- 参数： </span><br><span class="line">	- nfds : 委托内核检测的最大文件描述符的值 + 1 </span><br><span class="line">	- readfds : 要检测的文件描述符的读的集合，委托内核检测哪些文件描述符的读的属性 </span><br><span class="line">			- 一般检测读操作 </span><br><span class="line">			- 对应的是对方发送过来的数据，因为读是被动的接收数据，检测的就是读缓冲区 </span><br><span class="line">			- 是一个传入传出参数 </span><br><span class="line">	- writefds : 要检测的文件描述符的写的集合，委托内核检测哪些文件描述符的写的属性 </span><br><span class="line">			- 委托内核检测写缓冲区是不是还可以写数据（不满的就可以写） </span><br><span class="line">	- exceptfds : 检测发生异常的文件描述符的集合 </span><br><span class="line">	- timeout : 设置的超时时间 </span><br><span class="line"></span><br><span class="line">struct timeval &#123; </span><br><span class="line">	long tv_sec; &#x2F;* seconds *&#x2F; </span><br><span class="line">	long tv_usec; &#x2F;* microseconds *&#x2F; </span><br><span class="line">&#125;;</span><br><span class="line">	- NULL : 永久阻塞，直到检测到了文件描述符有变化 </span><br><span class="line">	- tv_sec &#x3D; 0 tv_usec &#x3D; 0， 不阻塞 </span><br><span class="line">	- tv_sec &gt; 0 tv_usec &gt; 0， 阻塞对应的时间 </span><br><span class="line"></span><br><span class="line">- 返回值 : </span><br><span class="line">	- -1 : 失败 </span><br><span class="line">	- &gt;0(n) : 检测的集合中有n个文件描述符发生了变化 </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 将参数文件描述符fd对应的标志位设置为0 </span><br><span class="line">void FD_CLR(int fd, fd_set *set); </span><br><span class="line">&#x2F;&#x2F; 判断fd对应的标志位是0还是1， 返回值 ： fd对应的标志位的值，0，返回0， 1，返回1 </span><br><span class="line">int FD_ISSET(int fd, fd_set *set); </span><br><span class="line">&#x2F;&#x2F; 将参数文件描述符fd 对应的标志位，设置为1 </span><br><span class="line">void FD_SET(int fd, fd_set *set);</span><br><span class="line">&#x2F;&#x2F; fd_set一共有1024 bit, 全部初始化为0 </span><br><span class="line">void FD_ZERO(fd_set *set);</span><br></pre></td></tr></table></figure>
+
+<h2 id="poll"><a href="#poll" class="headerlink" title="poll"></a>poll</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;poll.h&gt; </span><br><span class="line">struct pollfd &#123; </span><br><span class="line">int fd; &#x2F;* 委托内核检测的文件描述符 *&#x2F; </span><br><span class="line">	short events; &#x2F;* 委托内核检测文件描述符的什么事件 *&#x2F; </span><br><span class="line">	short revents; &#x2F;* 文件描述符实际发生的事件 *&#x2F; </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">struct pollfd myfd; </span><br><span class="line">myfd.fd &#x3D; 5; </span><br><span class="line">myfd.events &#x3D; POLLIN | POLLOUT; </span><br><span class="line"></span><br><span class="line">int poll(struct pollfd *fds, nfds_t nfds, int timeout); </span><br><span class="line">	- 参数：</span><br><span class="line">		- fds : 是一个struct pollfd 结构体数组，这是一个需要检测的文件描述符的集合 </span><br><span class="line">		- nfds : 这个是第一个参数数组中最后一个有效元素的下标 + 1 </span><br><span class="line">		- timeout : 阻塞时长 </span><br><span class="line">			0 : 不阻塞 </span><br><span class="line">			-1 : 阻塞，当检测到需要检测的文件描述符有变化，解除阻塞 </span><br><span class="line">			&gt;0 : 阻塞的时长 - </span><br><span class="line">	</span><br><span class="line">	- 返回值： </span><br><span class="line">		-1 : 失败 </span><br><span class="line">		&gt;0（n） : 成功,n表示检测到集合中有n个文件描述符发生变化</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3168c96f-e56c-4d8f-865d-45e49140ece2/Untitled.png" alt="https://s3-us-west-2.amazonaws.com/secure.notion-static.com/3168c96f-e56c-4d8f-865d-45e49140ece2/Untitled.png"></p>
+<h2 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;sys&#x2F;epoll.h&gt; </span><br><span class="line">&#x2F;&#x2F; 创建一个新的epoll实例。在内核中创建了一个数据，这个数据中有两个比较重要的数据，</span><br><span class="line">&#x2F;&#x2F;一个是需要检 测的文件描述符的信息（红黑树），还有一个是就绪列表，存放检测到数据发送</span><br><span class="line">&#x2F;&#x2F;改变的文件描述符信息（双向 链表）。 </span><br><span class="line">int epoll_create(int size); </span><br><span class="line">	- 参数：</span><br><span class="line">		size : 目前没有意义了。随便写一个数，必须大于0 </span><br><span class="line">	- 返回值： </span><br><span class="line">		-1 : 失败 </span><br><span class="line">		&gt; 0 : 文件描述符，操作epoll实例的</span><br><span class="line">typedef union epoll_data &#123; </span><br><span class="line">	void *ptr; </span><br><span class="line">	int fd; </span><br><span class="line">	uint32_t u32; </span><br><span class="line">	uint64_t u64; </span><br><span class="line">&#125; epoll_data_t; </span><br><span class="line"></span><br><span class="line">struct epoll_event &#123; </span><br><span class="line">	uint32_t events; &#x2F;* Epoll events *&#x2F; </span><br><span class="line">	epoll_data_t data; &#x2F;* User data variable *&#x2F; </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">常见的Epoll检测事件： </span><br><span class="line">	- EPOLLIN </span><br><span class="line">	- EPOLLOUT </span><br><span class="line">	- EPOLLERR </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 对epoll实例进行管理：添加文件描述符信息，删除信息，修改信息 </span><br><span class="line">int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event); </span><br><span class="line">	- 参数： </span><br><span class="line">		- epfd : epoll实例对应的文件描述符 </span><br><span class="line">		- op : 要进行什么操作 </span><br><span class="line">			EPOLL_CTL_ADD: 添加 </span><br><span class="line">			EPOLL_CTL_MOD: 修改 </span><br><span class="line">			EPOLL_CTL_DEL: 删除 </span><br><span class="line">	- fd : 要检测的文件描述符 </span><br><span class="line">	- event : 检测文件描述符什么事情 </span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 检测函数 </span><br><span class="line">int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout); </span><br><span class="line">	- 参数：</span><br><span class="line">		- epfd : epoll实例对应的文件描述符 </span><br><span class="line">		- events : 传出参数，保存了发送了变化的文件描述符的信息 </span><br><span class="line">		- maxevents : 第二个参数结构体数组的大小 </span><br><span class="line">		- timeout : 阻塞时间 </span><br><span class="line">			- 0 : 不阻塞 </span><br><span class="line">			- -1 : 阻塞，直到检测到fd数据发生变化，解除阻塞 </span><br><span class="line">			- &gt; 0 : 阻塞的时长（毫秒） </span><br><span class="line">	</span><br><span class="line">	- 返回值： </span><br><span class="line">		- 成功，返回发送变化的文件描述符的个数 &gt; 0 </span><br><span class="line">		- 失败 -1</span><br></pre></td></tr></table></figure>
+
+<h3 id="epoll的工作模式："><a href="#epoll的工作模式：" class="headerlink" title="epoll的工作模式："></a>epoll的工作模式：</h3><ul>
+<li><p>LT 模式 （水平触发）</p>
+<p>假设委托内核检测读事件 -&gt; 检测fd的读缓冲区</p>
+<p>读缓冲区有数据 - &gt; epoll检测到了会给用户通知</p>
+<p>a. 用户不读数据，数据一直在缓冲区，epoll 会一直通知</p>
+<p>b. 用户只读了一部分数据，epoll会通知</p>
+<p>c. 缓冲区的数据读完了，不通知</p>
+<ul>
+<li>LT（level - triggered）是缺省的工作方式，并且同时支持 block 和 no-block socket。在这种做法中，内核告诉你一个文件描述符是否就绪了，然后你可以对这个就绪的 fd 进行 IO 操作。如果你不作任何操作，内核还是会继续通知你的。</li>
+</ul>
+</li>
+<li><p>ET 模式（边沿触发）</p>
+<p>假设委托内核检测读事件 -&gt; 检测fd的读缓冲区</p>
+<p>读缓冲区有数据 - &gt; epoll检测到了会给用户通知</p>
+<p>a. 用户不读数据，数据一致在缓冲区中，epoll下次检测的时候就不通知了</p>
+<p>b. 用户只读了一部分数据，epoll不通知</p>
+<p>c. 缓冲区的数据读完了，不通知</p>
+<ul>
+<li>ET（edge - triggered）是高速工作方式，只支持 no-block socket。在这种模式下，当描述符从未就绪变为就绪时，内核通过epoll告诉你。然后它会假设你知道文件描述符已经就绪，并且不会再为那个文件描述符发送更多的就绪通知，直到你做了某些操作导致那个文件描述符不再为就绪状态了。但是请注意，如果一直不对这个 fd 作 IO 操作（从而导致它再次变成未就绪），内核不会发送更多的通知（only once）。</li>
+<li>ET 模式在很大程度上减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高。epoll工作在 ET 模式的时候，必须使用非阻塞套接口，以避免由于一个文件句柄的阻塞读/阻塞写操作把处理多个文件描述符的任务饿死。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">struct epoll_event &#123; </span><br><span class="line">	uint32_t events; &#x2F;* Epoll events *&#x2F; </span><br><span class="line">	epoll_data_t data; &#x2F;* User data variable *&#x2F; </span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">常见的Epoll检测事件： </span><br><span class="line">	- EPOLLIN </span><br><span class="line">	- EPOLLOUT </span><br><span class="line">	- EPOLLERR </span><br><span class="line">	- EPOLLET</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+              <a href="/tags/select/" rel="tag"># select</a>
+              <a href="/tags/poll/" rel="tag"># poll</a>
+              <a href="/tags/epoll/" rel="tag"># epoll</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/04/17/Linux%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91%E7%AC%94%E8%AE%B0/" rel="prev" title="Linux多线程开发笔记">
+      <i class="fa fa-chevron-left"></i> Linux多线程开发笔记
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#select"><span class="nav-number">1.</span> <span class="nav-text">select</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#poll"><span class="nav-number">2.</span> <span class="nav-text">poll</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#epoll"><span class="nav-number">3.</span> <span class="nav-text">epoll</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#epoll%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%A8%A1%E5%BC%8F%EF%BC%9A"><span class="nav-number">3.1.</span> <span class="nav-text">epoll的工作模式：</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="MoChen"
+      src="https://hexo-blog-1254337849.cos.na-ashburn.myqcloud.com/WechatIMG93.jpeg">
+  <p class="site-author-name" itemprop="name">MoChen</p>
+  <div class="site-description" itemprop="description">临渊羡鱼，不如退而结网</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/745698140" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;745698140" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:nikolaschen@qq.com" title="E-Mail → mailto:nikolaschen@qq.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">MoChen</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
